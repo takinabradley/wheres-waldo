@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react"
-import useWindowSize from "./hooks/useWindowSize"
-import toPercent from "./helpers/toPercent"
-import BoxCursor from "./ BoxCurser"
+import useWindowSize from "../hooks/useWindowSize"
+import BoxCursor from "./BoxCurser"
+import findElementOffset from "../helpers/findElementOffset"
+
+const toPercent = (decimal) => decimal * 100
 
 export default function SearchImage({ img, onPositionChosen }) {
   // we use a ref callback so state is updated with the ref is set
@@ -42,24 +44,6 @@ export default function SearchImage({ img, onPositionChosen }) {
       }
     }
   }, [imgRef, width, height])
-
-  function findElementOffset(element) {
-    // find how many pixels an element is from the left and top of the page
-    if (element.offSetParent === undefined) {
-      return [element.offsetLeft, element.offsetTop]
-    }
-
-    let x = 0
-    let y = 0
-    let offsetElement = element
-
-    while (offsetElement !== undefined) {
-      x += offsetElement.offsetLeft
-      y += offsetElement.offsetTop
-      offsetElement = offsetElement.offSetParent
-    }
-    return [x, y]
-  }
 
   function findImageCoords(e) {
     // size of image
@@ -108,7 +92,7 @@ export default function SearchImage({ img, onPositionChosen }) {
   }
 
   return (
-    <div className="search-image">
+    <div className="search-image" style={{ overflow: "none" }}>
       <BoxCursor
         width={cursorSize.x + "px"}
         height={cursorSize.y + "px"}

@@ -9,7 +9,6 @@ export default function findElementOffset(element) {
   let offsetElement = element
 
   while (offsetElement !== undefined) {
-    console.log(offsetElement)
     x += offsetElement.offsetLeft
     y += offsetElement.offsetTop
     offsetElement = offsetElement.offSetParent

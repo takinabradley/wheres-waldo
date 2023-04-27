@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
-import Timer from "./Timer"
-import SearchImage from "./SearchImage"
+import Timer from "./components/Timer"
+import SearchImage from "./components/SearchImage"
 import img from "./images/bullseye.jpg"
 
 export default function App() {
