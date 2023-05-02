@@ -1,5 +1,25 @@
-import React, { useEffect, useRef } from "react"
-export default function BoxCursor({ width, height, boundElement }) {
+import React, { forwardRef, useEffect, useRef } from "react"
+import useWindowSize from "../hooks/useWindowSize"
+
+function mergeSimpleObjects(originalObj, objToMerge, mutate = true) {
+  if (mutate) {
+    for (const key in objToMerge) {
+      originalObj[key] = objToMerge[key]
+    }
+  } else {
+    const newObj = { ...originalObj }
+    for (const key in objToMerge) {
+      newObj[key] = objToMerge[key]
+    }
+    return newObj
+  }
+}
+export default function BoxCursor({
+  width,
+  height,
+  customStyle,
+  boundElement
+}) {
   const cursor = useRef()
 
   function moveBox(e) {
@@ -31,10 +51,11 @@ export default function BoxCursor({ width, height, boundElement }) {
   const style = {
     pointerEvents: "none",
     position: "absolute",
-    border: "1px solid black",
-    width: width,
-    height: height
+    border: "1px dashed black"
   }
+  if (width) style.width = width
+  if (height) style.height = height
+  if (customStyle) mergeSimpleObjects(style, customStyle)
 
   return <div className="cursor" style={style} ref={cursor}></div>
 }
