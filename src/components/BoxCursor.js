@@ -51,7 +51,7 @@ export default function BoxCursor({
   const style = {
     pointerEvents: "none",
     position: "absolute",
-    border: "1px dashed black"
+    border: "1px solid black"
   }
   if (width) style.width = width
   if (height) style.height = height

@@ -13,8 +13,31 @@ function getElementWidthAndHeight(elem) {
   return [elemWdith, elemHeight]
 }
 
+/* 
+  'characters' should be an array of objects in this format:
+  {
+    name,
+    position: {
+      minX,
+      maxX,
+      minY,
+      maxY
+    }
+  }
+
+  the position values should be integers that represent a percentage of the x/y
+  axis. If You want a user to only get a character by selecting the exact middle
+  of an image, you might do:
+  minxX: 50, maxX: 50, minY: 50, maxY: 50
+
+  It would be really hard to click that exact spot though, so you should give 
+  some wiggle room:
+  minX: 49, maxX: 51, minY: 49, maxY: 51
+*/
 export default function SearchImage({
   img,
+  characters = [],
+  charactersToWin = 3,
   onAllCharactersFound,
   DOMMutationNotification
 }) {
@@ -26,25 +49,8 @@ export default function SearchImage({
   const [cursorSize, setCursorSize] = useState({ x: 0, y: 0 })
   // track where markers should be on the image
   const [markerPositions, setMarkerPositions] = useState([])
-  // list of character positions
-  const [characters, setCharacters] = useState([])
   // list of character names that have already been hit
   const [hitCharacters, setHitCharacters] = useState([])
-
-  useEffect(() => {
-    // fetch character list
-    setCharacters([
-      {
-        name: "bullseye",
-        position: {
-          minX: 33,
-          maxX: 66,
-          minY: 33,
-          maxY: 66
-        }
-      }
-    ])
-  }, [])
 
   useLayoutEffect(() => {
     function changeCursorSize() {
@@ -119,15 +125,22 @@ export default function SearchImage({
         percentY >= minY &&
         percentY <= maxY
       ) {
+        console.log(characters[index].name)
         return characters[index].name
       }
     }
 
     return false
   }
+  console.log
 
   function allCharactersFound(hitCharacterList) {
     if (hitCharacterList.length === characters.length) return true
+    return false
+  }
+
+  function enoughCharactersFound(hitCharacterList) {
+    if (hitCharacterList.length === charactersToWin) return true
     return false
   }
 
@@ -139,6 +152,7 @@ export default function SearchImage({
     const [imgWidth, imgHeight] = getElementWidthAndHeight(imgRef)
     const hitCharacter = findHitCharacter(imgPercents)
     const characterIsAlreadyHit = hitCharacters.includes(hitCharacter)
+    console.log(imgPercents)
 
     // add a position if a new character has been hit
     setMarkerPositions((prevState) => {
@@ -156,7 +170,7 @@ export default function SearchImage({
         {
           imgCoords,
           imgPercents,
-          matchesCharacter: findHitCharacter(imgPercents) ? true : false,
+          matchesCharacter: hitCharacter ? true : false,
           imgWidthWhenStored: imgWidth,
           imgHeightWhenStored: imgHeight
         }
@@ -171,17 +185,24 @@ export default function SearchImage({
     // if a new character has been hit, check if all characters have been hit
     // by adding the character that was just hit to this list.
     // if a character was not hit, make sure not to add it to the list
-    const newHitCharacterList = hitCharacters
-    if (!characterIsAlreadyHit) newHitCharacterList.push(hitCharacter)
+    const newHitCharacterList = [...hitCharacters]
+    if (hitCharacter && !characterIsAlreadyHit)
+      newHitCharacterList.push(hitCharacter)
 
     console.log(
       "hit character",
       hitCharacter,
       "all characters hit?",
       allCharactersFound(newHitCharacterList),
+      "enough characters found?",
+      enoughCharactersFound(newHitCharacterList),
       newHitCharacterList
     )
-    if (allCharactersFound(newHitCharacterList))
+
+    if (
+      allCharactersFound(newHitCharacterList) ||
+      enoughCharactersFound(newHitCharacterList)
+    )
       onAllCharactersFound(imgPercents)
   }
 
@@ -191,8 +212,8 @@ export default function SearchImage({
     if (imgRef) {
       const imgWidth = imgRef.clientWidth
       const imgHeight = imgRef.clientHeight
-      if (axis === "x") return `${parseInt(imgWidth / 3)}`
-      if (axis === "y") return `${parseInt(imgHeight / 3)}`
+      if (axis === "x") return `${parseInt(imgWidth / 10)}`
+      if (axis === "y") return `${parseInt(imgWidth / 10)}`
     }
   }
 
@@ -201,8 +222,8 @@ export default function SearchImage({
     // currently set to 1/3 the size
     const imgWidth = imgRef.clientWidth
     const imgHeight = imgRef.clientHeight
-    if (axis === "x") return `${parseInt(imgWidth / 3)}`
-    if (axis === "y") return `${parseInt(imgHeight / 3)}`
+    if (axis === "x") return `${parseInt(imgWidth / 10)}`
+    if (axis === "y") return `${parseInt(imgWidth / 10)}`
   }
 
   function calcMarkerPositionAndSize(position) {
@@ -258,7 +279,9 @@ export default function SearchImage({
     const customStyle = {}
     const matchesCharacter = position.matchesCharacter
     if (matchesCharacter) {
-      customStyle.border = "2px solid green"
+      customStyle.border = "10px dashed white"
+      customStyle.backgroundColor = "rgba(255, 255, 255, .2)"
+      customStyle.boxSizing = "border-box"
     }
 
     return (
@@ -274,12 +297,19 @@ export default function SearchImage({
   })
 
   return (
-    <div className="search-image" style={{ overflowX: "hidden" }}>
+    <div
+      className="search-image"
+      style={{ overflowX: "hidden", overflowY: "hidden" }}
+    >
       <BoxCursor
         width={cursorSize.x + "px"}
         height={cursorSize.y + "px"}
         boundElement={imgRef}
-        customStyle={{ borderRadius: "1000px" }}
+        customStyle={{
+          borderRadius: "1000px",
+          border: "10px dashed white",
+          boxSizing: "border-box"
+        }}
       />
       <img
         src={img}
@@ -287,7 +317,7 @@ export default function SearchImage({
         draggable="false"
         onClick={selectPosition}
         ref={setImgRef}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", display: "block" }}
       />
 
       {markers || null}
